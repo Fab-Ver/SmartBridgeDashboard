@@ -101,7 +101,6 @@ const App = () => {
   	}, []);
 
 	const updateManualStatus = (value) => {
-		console.log(value);
 		setManualStatus(value);
 		/**
 		 * Aggiungere comunicazione con Ditto
@@ -110,7 +109,6 @@ const App = () => {
 
 	const updateValveAngle = (value) => {
 		setValveSlider(value);
-		//console.log(value);
 		setValve(value);
 		if(manualStatus === true){
 		/**
