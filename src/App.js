@@ -2,16 +2,18 @@ import '@picocss/pico'
 import './App.css'
 import { useEffect, useState } from 'react'
 import React from 'react';
+import axios from 'axios';
 
 
 const App = () => {
 
 	const [valveSlider, setValveSlider] = useState(50);
+	const mqtt_topic = 'subsystems/messages/org.eclipse.ditto:water-level-subsystem';
 
 	/**
 	 * Water Level Subsystem Features
 	 */
-	const [wlsStatus, setWlsStatus] = useState("PRE-ALARM");
+	const [wlsStatus, setWlsStatus] = useState("NORMAL");
 	const [valve, setValve] = useState(0);
 	const [redLed, setRedLed] = useState(false);
 	const [redLedBlinking, setRedLedBlinking] = useState(false);
@@ -56,6 +58,8 @@ const App = () => {
 						setRedLedBlinking(feature['red-led'].properties.blinking)
 					} else if(feature.hasOwnProperty('status')){
 						setWlsStatus(feature.status.properties.status)
+					} else if(feature.hasOwnProperty('manual')){
+						setManualStatus(feature.manual.properties.on)
 					}
 				}
 			}
@@ -101,19 +105,31 @@ const App = () => {
   	}, []);
 
 	const updateManualStatus = (value) => {
-		setManualStatus(value);
-		/**
-		 * Aggiungere comunicazione con Ditto
-		 */
+		if(wlsStatus === 'ALARM'){
+			let payload = {
+				manual : value
+			}
+			axios.post(`http://localhost:8080/api/2/things/org.eclipse.ditto:water-level-subsystem/inbox/messages/${mqtt_topic}?timeout=0`, payload, {
+				headers: {
+					Authorization: 'Basic ZGl0dG86ZGl0dG8=',
+					'content-type': 'application/json'
+			   }
+			})
+		}	
 	}
 
 	const updateValveAngle = (value) => {
 		setValveSlider(value);
-		setValve(value);
-		if(manualStatus === true){
-		/**
-		 * Aggiungere comunicazione con Ditto
-		 */
+		if(manualStatus === true && wlsStatus === 'ALARM'){
+			let payload = {
+				angle : value
+			}
+			axios.post(`http://localhost:8080/api/2/things/org.eclipse.ditto:water-level-subsystem/inbox/messages/${mqtt_topic}?timeout=0`, payload, {
+				headers: {
+					Authorization: 'Basic ZGl0dG86ZGl0dG8=',
+					'content-type': 'application/json'
+		   		}
+			})
 		}
 	}
 
