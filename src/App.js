@@ -7,27 +7,10 @@ import axios from 'axios';
 
 const App = () => {
 
-	const mqtt_topic = 'subsystems/messages/org.eclipse.ditto:water-level-subsystem';
-
-	/**
-	 * Uncomment the appropriate URLs based on the platform used.
-	 */
-	
-	/**
-	 * Eclipse Ditto's URLs
-	 */
-	const wlsSSE = 'http://localhost:8080/api/2/things?ids=org.eclipse.ditto:water-level-subsystem';
-	const slsSSE = 'http://localhost:8080/api/2/things?ids=org.eclipse.ditto:smart-light-subsystem';
-	const manualURL = `http://localhost:8080/api/2/things/org.eclipse.ditto:water-level-subsystem/inbox/messages/${mqtt_topic}?timeout=0`;
-	const manualHeaders = { headers: { Authorization: 'Basic ZGl0dG86ZGl0dG8=', 'content-type': 'application/json' }};
-
-	/**
-	 * White Label Digital Twin's URLs
-	 */
-	/*const wlsSSE = 'http://localhost:8080/water-level-subsystem/sse';
-	const slsSSE = 'http://localhost:8080/smart-light-subsystem/sse';
-	const manualURL = `http://localhost:8080/water-level-subsystem/manual`;
-	const manualHeaders = { headers: { 'content-type': 'application/json' }};*/
+	const wlsSSE = process.env.REACT_APP_WLS_SSE
+	const slsSSE = process.env.REACT_APP_SLS_SSE
+	const manualURL = process.env.REACT_APP_MANUAL_URL
+	const manualHeaders = process.env.REACT_APP_MANUAL_HEADERS
 
 	const [valveSlider, setValveSlider] = useState(50);
 
@@ -52,7 +35,7 @@ const App = () => {
 	const [smartLightWaiting, setSmartLightWaiting] = useState(false);
 
 	useEffect(() =>{
-
+		
 		const wls_sse = new EventSource(wlsSSE,{withCredentials : true});
 		const sls_sse = new EventSource(slsSSE,{withCredentials : true});
 
