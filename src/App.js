@@ -7,8 +7,29 @@ import axios from 'axios';
 
 const App = () => {
 
-	const [valveSlider, setValveSlider] = useState(50);
 	const mqtt_topic = 'subsystems/messages/org.eclipse.ditto:water-level-subsystem';
+
+	/**
+	 * Uncomment the appropriate URLs based on the platform used.
+	 */
+	
+	/**
+	 * Eclipse Ditto's URLs
+	 */
+	const wlsSSE = 'http://localhost:8080/api/2/things?ids=org.eclipse.ditto:water-level-subsystem';
+	const slsSSE = 'http://localhost:8080/api/2/things?ids=org.eclipse.ditto:smart-light-subsystem';
+	const manualURL = `http://localhost:8080/api/2/things/org.eclipse.ditto:water-level-subsystem/inbox/messages/${mqtt_topic}?timeout=0`;
+	const manualHeaders = { headers: { Authorization: 'Basic ZGl0dG86ZGl0dG8=', 'content-type': 'application/json' }};
+
+	/**
+	 * White Label Digital Twin's URLs
+	 */
+	/*const wlsSSE = 'http://localhost:8080/water-level-subsystem/sse';
+	const slsSSE = 'http://localhost:8080/smart-light-subsystem/sse';
+	const manualURL = `http://localhost:8080/water-level-subsystem/manual`;
+	const manualHeaders = { headers: { 'content-type': 'application/json' }};*/
+
+	const [valveSlider, setValveSlider] = useState(50);
 
 	/**
 	 * Water Level Subsystem Features
@@ -32,8 +53,8 @@ const App = () => {
 
 	useEffect(() =>{
 
-		const wls_sse = new EventSource('http://localhost:8080/api/2/things?ids=org.eclipse.ditto:water-level-subsystem',{withCredentials : true});
-		const sls_sse = new EventSource('http://localhost:8080/api/2/things?ids=org.eclipse.ditto:smart-light-subsystem',{withCredentials : true});
+		const wls_sse = new EventSource(wlsSSE,{withCredentials : true});
+		const sls_sse = new EventSource(slsSSE,{withCredentials : true});
 
 		//Listen for incoming message from the server
 		wls_sse.onmessage = event => {
@@ -61,9 +82,26 @@ const App = () => {
 					} else if(feature.hasOwnProperty('manual')){
 						setManualStatus(feature.manual.properties.on)
 					}
+				} else if (data.platform === 'wldt'){
+					if(data.hasOwnProperty('valve-angle')){
+						setValve(data['valve-angle'])
+					} else if(data.hasOwnProperty('water-distance')){
+						setDistance(data['water-distance'])
+					} else if(data.hasOwnProperty('green-led')){
+						setGreenLed(data['green-led'])
+					} else if(data.hasOwnProperty('red-led-on')){
+						setRedLed(data['red-led-on'])
+					} else if(data.hasOwnProperty('status')){
+						setWlsStatus(data.status)
+					} else if(data.hasOwnProperty('manual')){
+						setManualStatus(data.manual)
+					} else if (data.hasOwnProperty('red-led-blinking')){
+						setRedLedBlinking(data['red-led-blinking'])
+					}
 				}
 			}
 		}
+
 		sls_sse.onmessage = event => {
 			if(event.data !== ''){
 				/**
@@ -84,6 +122,18 @@ const App = () => {
 						setSmartLightWaiting(feature['smart-light'].properties.waiting)
 					} else if(feature.hasOwnProperty('status')){
 						setSlsStatus(feature.status.properties.status)
+					}
+				} else if (data.platform === 'wldt'){
+					if(data.hasOwnProperty('dark')){
+						setDark(data.dark)
+					} else if(data.hasOwnProperty('detected')){
+						setDetected(data.detected)
+					} else if(data.hasOwnProperty('smart-light-on')){
+						setSmartLight(data['smart-light-on'])
+					} else if(data.hasOwnProperty('status')){
+						setSlsStatus(data.status)
+					} else if(data.hasOwnProperty('smart-light-waiting')){
+						setSmartLightWaiting(data['smart-light-waiting'])
 					}
 				}
 			}
@@ -109,12 +159,7 @@ const App = () => {
 			let payload = {
 				manual : value
 			}
-			axios.post(`http://localhost:8080/api/2/things/org.eclipse.ditto:water-level-subsystem/inbox/messages/${mqtt_topic}?timeout=0`, payload, {
-				headers: {
-					Authorization: 'Basic ZGl0dG86ZGl0dG8=',
-					'content-type': 'application/json'
-			   }
-			})
+			axios.post(manualURL, payload, manualHeaders)
 		}	
 	}
 
@@ -124,12 +169,7 @@ const App = () => {
 			let payload = {
 				angle : value
 			}
-			axios.post(`http://localhost:8080/api/2/things/org.eclipse.ditto:water-level-subsystem/inbox/messages/${mqtt_topic}?timeout=0`, payload, {
-				headers: {
-					Authorization: 'Basic ZGl0dG86ZGl0dG8=',
-					'content-type': 'application/json'
-		   		}
-			})
+			axios.post(manualURL, payload, manualHeaders)
 		}
 	}
 
