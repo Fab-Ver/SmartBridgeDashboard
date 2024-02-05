@@ -16,8 +16,8 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build:wldt": "env-cmd -f .env.wldt react-scripts build",
+    "build:ditto": "env-cmd -f .env.ditto react-scripts build",
     "start:wldt": "env-cmd -f .env.wldt react-scripts start",
     "start:ditto": "env-cmd -f .env.ditto react-scripts start",
     "test": "react-scripts test",
